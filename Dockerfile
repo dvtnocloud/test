@@ -1,22 +1,28 @@
-# Base từ Webtop (không cài gì thêm)
-FROM lscr.io/linuxserver/webtop:latest
+# ===============================
+#  WEBTOP + CLOUDFLARE QUICK TUNNEL
+#  ONE FILE FOR RAILWAY DEPLOYMENT
+# ===============================
+FROM linuxserver/webtop:latest
 
+# Fix user
 USER root
 
-# Chỉ thêm ngrok (không đụng gì vào hệ thống GUI)
-RUN curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
- | gpg --dearmor -o /usr/share/keyrings/ngrok-archive-keyring.gpg && \
- echo "deb [signed-by=/usr/share/keyrings/ngrok-archive-keyring.gpg] \
- https://ngrok-agent.s3.amazonaws.com buster main" \
- > /etc/apt/sources.list.d/ngrok.list && \
- apt update && apt install -y ngrok && \
- mkdir -p /root/.config/ngrok
+# Install cloudflared
+RUN apt update && apt install -y curl wget cloudflared && \
+    rm -rf /var/lib/apt/lists/*
 
-# Port của webtop (noVNC)
+# Env for Webtop
+ENV PUID=1000
+ENV PGID=1000
+ENV TZ=Asia/Ho_Chi_Minh
+
+# Expose for local (Railway sẽ map)
 EXPOSE 3000
 
-# Copy script start
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-CMD ["/start.sh"]
+# Start script → run Webtop + Tunnel
+CMD /bin/bash -c "\
+echo '🚀 Starting Webtop...' && \
+/init & \
+sleep 5 && \
+echo '🌐 Creating Cloudflare Quick Tunnel (No Account Needed)...' && \
+cloudflared tunnel --no-autoupdate --url http://localhost:3000"
