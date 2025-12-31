@@ -1,17 +1,13 @@
 FROM linuxserver/webtop:latest
 
-# Cài ngrok
-RUN apt update && apt install -y curl && \
-    curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | \
-    tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && \
-    echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | tee /etc/apt/sources.list.d/ngrok.list && \
-    apt update && apt install -y ngrok
+# Cài ngrok cho Alpine (apk)
+RUN apk update && apk add --no-cache curl unzip
+RUN curl -s https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -o ngrok.zip && \
+    unzip ngrok.zip && mv ngrok /usr/local/bin/ && rm -f ngrok.zip
 
 # Copy script start
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Railway cần expose cổng chính
 EXPOSE 3000
-
 CMD ["/start.sh"]
