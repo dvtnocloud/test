@@ -1,29 +1,28 @@
-# ===============================
-#  WEBTOP + CLOUDFLARE QUICK TUNNEL
-#  RAILWAY DEPLOY 1 FILE
-# ===============================
 FROM linuxserver/webtop:latest
 
 USER root
-
-# Install cloudflared & tools (Alpine uses apk, NOT apt)
 RUN apk update && \
-    apk add --no-cache curl wget && \
+    apk add --no-cache curl wget grep && \
     wget -O /usr/local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && \
     chmod +x /usr/local/bin/cloudflared
 
-# Env for Webtop
+# Fake service giữ container sống
+RUN echo -e '#!/bin/sh\nwhile true; do echo ok >/dev/null; sleep 30; done' > /keepalive.sh \
+    && chmod +x /keepalive.sh
+
 ENV PUID=1000
 ENV PGID=1000
 ENV TZ=Asia/Ho_Chi_Minh
 
-# Port expose
-EXPOSE 3000
+EXPOSE 3000 8080
 
-# CMD start webtop and auto cloudflare tunnel
-CMD /bin/bash -c "\
-echo '🚀 Starting Webtop...' && \
+# CHẠY TẤT CẢ + LỌC LOG CHẮC CHẮN IN RA LINK
+CMD /bin/sh -c "\
 /init & \
-sleep 5 && \
-echo '🌐 Creating Cloudflare Quick Tunnel (NO ACCOUNT REQUIRED)...' && \
-cloudflared tunnel --no-autoupdate --url http://localhost:3000"
+/keepalive.sh & \
+sleep 5; \
+echo '🔍 Đang tạo Cloudflare Tunnel, chờ lấy link...' >&2; \
+cloudflared tunnel --no-autoupdate --url http://localhost:3000 2>&1 | \
+while read line; do \
+    echo \"$line\" | grep -Eo 'https://[a-zA-Z0-9.-]+trycloudflare.com' && break; \
+done"
