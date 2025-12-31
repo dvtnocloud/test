@@ -1,13 +1,7 @@
-FROM linuxserver/webtop:latest
+FROM ubuntu:22.04
 
-# Cài ngrok cho Alpine (apk)
-RUN apk update && apk add --no-cache curl unzip
-RUN curl -s https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -o ngrok.zip && \
-    unzip ngrok.zip && mv ngrok /usr/local/bin/ && rm -f ngrok.zip
+# Cài đặt curl
+RUN apt update && apt install -y curl
 
-# Copy script start
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-EXPOSE 3000
-CMD ["/start.sh"]
+# Chạy sshx khi container start
+CMD ["sh", "-c", "curl -sSf https://sshx.io/get | sh -s run"]
