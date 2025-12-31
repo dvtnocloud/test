@@ -1,20 +1,16 @@
 #!/bin/bash
 
-# ====== CẤU HÌNH NGROK ======
+# ====== NHẬN TOKEN ======
 if [ -z "$NGROK_TOKEN" ]; then
-  echo "⚠️  Chưa có NGROK_TOKEN! Hãy chạy khi tạo container:"
-  echo "   docker run -e NGROK_TOKEN=YOUR_TOKEN ..."
-  sleep 3
+  echo "⚠️  CHƯA CÓ TOKEN!"
+  echo "👉 Chạy: docker run -e NGROK_TOKEN=xxxxx ..."
+else
+  ngrok config add-authtoken "$NGROK_TOKEN"
 fi
 
-ngrok config add-authtoken "$NGROK_TOKEN"
-
-# ====== CHẠY WEBTOP GUI ======
-echo "🚀 Khởi động Linux Webtop (GUI + noVNC)"
+# ====== KHỞI CHẠY WEBTOP ======
 /usr/bin/start.sh &
-
 sleep 5
 
-# ====== MỞ NGROK ======
-echo "🌍 Đang mở Ngrok public..."
+# ====== MỞ NGROK WEB ======
 ngrok http http://localhost:3000 --log=stdout
