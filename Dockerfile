@@ -1,21 +1,21 @@
-FROM lscr.io/linuxserver/webtop:ubuntu-xfce
+# Base từ Webtop (không cài gì thêm)
+FROM lscr.io/linuxserver/webtop:latest
 
-# Cài đặt ngrok + browser + âm thanh + clipboard
 USER root
-RUN apt update && apt install -y \
-    curl wget nano pulseaudio firefox-esr xclip && \
-    curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | gpg --dearmor -o /usr/share/keyrings/ngrok-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/ngrok-archive-keyring.gpg] https://ngrok-agent.s3.amazonaws.com buster main" > /etc/apt/sources.list.d/ngrok.list && \
-    apt update && apt install -y ngrok
 
-# Tự tạo thư mục ngrok config
-RUN mkdir -p /root/.config/ngrok
+# Chỉ thêm ngrok (không đụng gì vào hệ thống GUI)
+RUN curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
+ | gpg --dearmor -o /usr/share/keyrings/ngrok-archive-keyring.gpg && \
+ echo "deb [signed-by=/usr/share/keyrings/ngrok-archive-keyring.gpg] \
+ https://ngrok-agent.s3.amazonaws.com buster main" \
+ > /etc/apt/sources.list.d/ngrok.list && \
+ apt update && apt install -y ngrok && \
+ mkdir -p /root/.config/ngrok
 
-# Mặc định mở cổng noVNC 3000
-ENV WEBTOP_PORT=3000
+# Port của webtop (noVNC)
 EXPOSE 3000
 
-# Chạy script khi container start
+# Copy script start
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
